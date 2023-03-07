@@ -1,20 +1,29 @@
 ```mermaid
 ---
-title: Driver Arrangement v 0.1.1
+title: Driver Arrangement v0.2.0
 ---
 classDiagram
-    driver_arrangement --o Algorithm
+    driver_arrangement --> algorithms
+    algorithms --o SecretAlgorithm
 
     class driver_arrangement{
-        +list arrange()
-        +int suitability_score()
-        -list read_drivers()
-        -list read_destinations()
+        +attached_algorithm
+
+        +tuple arrangement()
+        +list read_drivers()
+        +list read_destinations()
     }
-    class algorithm{
-        +int base_ss()
-        +int bonus_factor()
-        +list[list] candidate_match()
-        +list optimized_match()
+    class algorithms{
+      <<module>>
+    }
+    class SecretAlgorithm{
+        -list<string> drivers
+        -list<string> destinations
+
+        +None set_drivers()
+        +None set_destinations()
+        +float calculate_suitability_score()
+        +tuple optimized_result()
+        -dict vowel_and_consonant_count()
     }
 ```
