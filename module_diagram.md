@@ -1,6 +1,6 @@
 ```mermaid
 ---
-title: Driver Arrangement v 0.1.0
+title: Driver Arrangement v 0.1.1
 ---
 classDiagram
     driver_arrangement --o Algorithm
@@ -11,7 +11,7 @@ classDiagram
         -list read_drivers()
         -list read_destinations()
     }
-    class Algorithm{
+    class algorithm{
         +int base_ss()
         +int bonus_factor()
         +list[list] candidate_match()
