@@ -16,6 +16,9 @@ class SecretAlgorithm:
         result = defaultdict(int)
         vowels = "aeiou"
         for c in string.lower():
+            if not c.isalpha():
+                continue
+
             if c in vowels:
                 result["vowel"] += 1
             else:
@@ -27,12 +30,15 @@ class SecretAlgorithm:
             raise Exception("please validate your inputs")
 
         vowel_and_consonant_count = self.__vowel_and_consonant_count(driver)
+        driver_name_length = len(driver)
+        destination_name_length = len(destination)
         result = 0
-        if len(destination) % 2 == 0:
+        if (destination_name_length != 0) and (destination_name_length % 2 == 0):
             result = float(vowel_and_consonant_count["vowel"]) * 1.5
-        result = float(vowel_and_consonant_count["consonant"])
+        else:
+            result = float(vowel_and_consonant_count["consonant"])
 
-        if gcd(len(driver), len(destination)) > 1:
+        if gcd(driver_name_length, destination_name_length) > 1:
             result *= 1.5
 
         return result
