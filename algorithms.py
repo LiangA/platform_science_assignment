@@ -6,10 +6,14 @@ class SecretAlgorithm:
     __drivers = []
     __destinations = []
 
-    def set_drivers(self, drivers: list) -> None:
+    def set_drivers(self, drivers: list[str]) -> None:
+        if (not isinstance(drivers, list)):
+            raise Exception("Please validate your drivers is a list.")
         self.__drivers = drivers
 
-    def set_destinations(self, destinations: list) -> None:
+    def set_destinations(self, destinations: list[str]) -> None:
+        if (not isinstance(destinations, list)):
+            raise Exception("Please validate your destinations is a list.")
         self.__destinations = destinations
 
     def __vowel_and_consonant_count(self, string: str) -> dict:
@@ -26,8 +30,8 @@ class SecretAlgorithm:
         return result
 
     def calculate_suitability_score(self, *, driver: str, destination: str) -> float:
-        if driver == None or destination == None:
-            raise Exception("please validate your inputs")
+        if (not isinstance(driver, str)) or (not isinstance(destination, str)):
+            raise Exception("Please validate your inputs are strings.")
 
         vowel_and_consonant_count = self.__vowel_and_consonant_count(driver)
         driver_name_length = len(driver)
@@ -47,8 +51,14 @@ class SecretAlgorithm:
         score_list = []
         for driver in self.__drivers:
             for destination in self.__destinations:
+                if (not isinstance(driver, str)) or (not isinstance(destination, str)):
+                    raise Exception("Please validate your drivers and destinations are list of strings.")
+
                 score_list.append((self.calculate_suitability_score(
                     driver=driver, destination=destination), driver, destination))
+
+        if len(score_list) == 0:
+            raise Exception("Either drivers or destinations is empty.")
 
         score_list.sort(reverse=True)
 
