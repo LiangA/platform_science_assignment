@@ -1,6 +1,9 @@
 from collections import defaultdict
 from math import gcd
 
+import numpy as np
+from scipy.optimize import linear_sum_assignment
+
 
 class SecretAlgorithm:
     __drivers = []
@@ -48,35 +51,24 @@ class SecretAlgorithm:
         return result
 
     def optimized_result(self) -> tuple:
-        score_list = []
-        for driver in self.__drivers:
-            for destination in self.__destinations:
+        drivers_list_length = len(self.__drivers)
+        destinations_list_length = len(self.__destinations)
+
+        if (drivers_list_length == 0) or (destinations_list_length == 0):
+            raise Exception("Please make sure at least one input is in BOTH drivers and destinations list.")
+
+        score_matrix = np.zeros((drivers_list_length, destinations_list_length))
+        for i in range(drivers_list_length):
+            for j in range(destinations_list_length):
+                driver = self.__drivers[i]
+                destination = self.__destinations[j]
                 if (not isinstance(driver, str)) or (not isinstance(destination, str)):
                     raise Exception("Please validate your drivers and destinations are list of strings.")
 
-                score_list.append((self.calculate_suitability_score(
-                    driver=driver, destination=destination), driver, destination))
+                score_matrix[i][j] = self.calculate_suitability_score(driver=driver, destination=destination)
 
-        if len(score_list) == 0:
-            raise Exception("Either drivers or destinations is empty.")
-
-        score_list.sort(reverse=True)
-
-        total_score = 0
-        matching = []
-        driver_assigned = set()
-        destination_assigned = set()
-        for candidate in score_list:
-            score = candidate[0]
-            driver = candidate[1]
-            destination = candidate[2]
-
-            if (driver in driver_assigned) or (destination in destination_assigned):
-                continue
-
-            total_score += score
-            matching.append((driver, destination))
-            driver_assigned.add(driver)
-            destination_assigned.add(destination)
+        rows_assigned, columns_assigned = linear_sum_assignment(score_matrix, maximize=True)
+        total_score = score_matrix[rows_assigned, columns_assigned].sum()
+        matching = list(map(lambda x, y: (self.__drivers[x], self.__destinations[y]), rows_assigned, columns_assigned))
 
         return (total_score, matching)
