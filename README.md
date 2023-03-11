@@ -10,7 +10,13 @@ For the details of project design, please check [Module Design](./module_design.
 
 There are two ways to build up the environment: via *Github Codespace* or setup *locally* 
 
-1. To use Github Codespace, go to [https://lianga-supreme-yodel-4xrvqg9jpvcxpj.github.dev/](https://lianga-supreme-yodel-4xrvqg9jpvcxpj.github.dev/) and begin using.
+1. To use Github Codespace (new feature of github, not reliable but worth trying)
+    - go to [this link]() and you'll see a pop window like this
+        ![image](https://user-images.githubusercontent.com/10252988/224461226-ece4b51d-4501-4cac-87a2-8c67aa428abf.png)
+    - click "continue in web" and you'll see another pop window
+        ![image](https://user-images.githubusercontent.com/10252988/224461275-16bea809-f311-4317-8ef3-0bb75920debe.png)
+    - click "continue as anonymous" and type in a guest name
+    - log into the terminal and start to test the module
 
 2. To run the project locally
     - make sure you have *Python 3.9+* and *pip* installed
