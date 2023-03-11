@@ -4,6 +4,8 @@
 
 In this project, I have applied [Hungarian algorithm](https://en.wikipedia.org/wiki/Hungarian_algorithm) to assign drivers to their destinations based on specific rules. The core algorithm used in this project is widely recognized as the best solution for assignment problem.
 
+For the details of project design, please check [Module Design](./module_design.md).
+
 ## Getting Started
 
 There are two ways to build up the environment: via *Github Codespace* or setup *locally* 
