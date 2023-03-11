@@ -50,6 +50,13 @@ def test_optimized_result(algo_instance):
     algo_instance.set_drivers(["aaaa", "abca", "efgh"])
     algo_instance.set_destinations(["aaaa", "bbb"])
     assert algo_instance.optimized_result() == (12.0, [("aaaa", "aaaa"), ("efgh", "bbb")])
+    algo_instance = SecretAlgorithm()
+
+    # a test case that will fail a greedy solution. the output of greedy solution is 9.75
+    algo_instance.set_drivers(["aaa", "aaabbb", "efgh"])
+    algo_instance.set_destinations(["aaaa", "bbb", "ccc"])
+    assert algo_instance.optimized_result() == (12.0, [('aaa', 'aaaa'), ('aaabbb', 'bbb'), ('efgh', 'ccc')])
+
 
 # we can't run test for private methods, this is showing the cases I considered while building that method
 # def test_vowel_and_consonant_count():
