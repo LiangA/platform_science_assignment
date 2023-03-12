@@ -21,7 +21,7 @@ class SecretAlgorithm:
 
     def __vowel_and_consonant_count(self, string: str) -> dict:
         result = defaultdict(int)
-        vowels = "aeiou"
+        vowels = {"a", "e", "i", "o", "u"}
         for c in string.lower():
             if not c.isalpha():
                 continue
@@ -45,6 +45,7 @@ class SecretAlgorithm:
         else:
             result = float(vowel_and_consonant_count["consonant"])
 
+        # if gcd (greatest commond divisor) of two number is larger than 1, they have at least one common factor
         if gcd(driver_name_length, destination_name_length) > 1:
             result *= 1.5
 
