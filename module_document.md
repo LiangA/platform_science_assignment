@@ -3,7 +3,7 @@ Before we introduce the architecture of the project, there is a concept used in 
 
 For example, the document structure. Because this is a small-scale project, many things are kept simple. We do not need to make the entire repository's structure complicated because we just don't have many files. We can rearrange it when we have more.
 
-Next, we will introduce this project step by step. Because this is for an interview, the entire introduction will get into details, covering everything from the document structure to the program logic and even the code writing style.
+Next, we will introduce this project step by step. Since this is for an interview, the entire introduction will get into details, covering everything from the document structure to the program logic and even the code writing style.
 
 ## Project boilerplate
 The file structure of this project is very simple. It consists of two main Python files, project configuration files, a test folder, and a mock data folder:
@@ -127,7 +127,6 @@ flowchart TD
     s4[produce final output by processing scipy outputs]
     s1 --> s2 --> s3 --> s4
 ```
-After spending a few hours comparing the first implementation with the second implementation, I have gained some experience that I have not yet added here. I will add it later.
 
 ### Testing
 I only did unit tests because, as mentioned earlier, I didn't consider driver_assignment as a module but more like an entry point to the program. Therefore, the main object to be tested in this project is the SecretAlgorithm class in algorithms.py.
@@ -137,3 +136,163 @@ I chose ```pytest``` as the testing package because its API is easier to use, an
 Each test block has comments to explain the test items, and I set up Github Actions to perform tests every time I push to the main branch. 
 If the test fails, I receive a notification via email. It is worth noting that the test for the optimized_result function includes an edge case that I ignored in the first version, which effectively verifies future modifications.
 
+
+## Research in different implementations
+As mentioned earlier, I have two implementations for this project. The first one uses a greedy approach, while the second one uses the Hungarian algorithm. In this paragraph, I would like to compare these two implementations.
+
+The first implementation is not perfect, as it uses an idea of 0/1 knapsack problem, and uses greedy method to select the combination with the maximum score. While it may work for some cases, it is not guaranteed to find the optimal solution. On the other hand, the second implementation that uses the Hungarian algorithm is known to provide the optimal solution for the assignment problem. 
+Additionally, the implementation of the Hungarian algorithm in the ```Scipy``` library has a strong performance in terms of execution speed. [Discussion of Hungarian in Scipy](https://stackoverflow.com/questions/1398822/the-assignment-problem-a-numpy-function)
+
+### The algorithms
+As for the details of the Hungarian Algorithm, there are many resources available online, so I won't go into too much detail here. Let me just show the implementation of greedy method:
+```python
+def optimized_result(self) -> tuple:
+    score_list = []
+    for driver in self.__drivers:
+        for destination in self.__destinations:
+            score_list.append((self.calculate_suitability_score(
+                driver=driver, destination=destination), driver, destination))
+
+    score_list.sort(reverse=True)
+
+    total_score = 0
+    matching = []
+    driver_assigned = set()
+    destination_assigned = set()
+    for candidate in score_list:
+        score = candidate[0]
+        driver = candidate[1]
+        destination = candidate[2]
+
+        if (driver in driver_assigned) or (destination in destination_assigned):
+            continue
+
+        total_score += score
+        matching.append((driver, destination))
+        driver_assigned.add(driver)
+        destination_assigned.add(destination)
+
+    return (total_score, matching)
+```
+
+In this implementation, I flattened the 2-D score matrix into a 1-D list, where each item represents a possible combination and the corresponding score.
+Each item is a tuple that contains three elements ```(<suitability score>, <driver's name>, <destination>)```.
+
+Next, I sorted the ```score_list``` in descending order by score. Python's built-in sort uses ```Tim sort```; and when the item is a tuple, it automatically uses the tuple's elements as keys. In this case, the suitability score will be the first key.
+
+Then, I iterated through the entire ```score_list```. If the current driver or destination has already been assigned, I moved on to the next iteration. Otherwise, I selected the current item, updated the total score, and added the driver and destination to their respective sets indicating that they have been assigned.
+This process will always choose the highest scored combination at the moment.
+
+Finally, the program outputs the total score and the recorded matching list.
+
+### Output scores
+In the repository, there is a folder called ```mock_data``` that contains three sets of data: a small dataset, a massive dataset, and a unbalanced dataset - a dataset with a different number of drivers and destinations.
+
+Running the small dataset, the scores obtained are:
+```bash
+running hungarian algorithm...
+The score is 26.0
+running greedy algorithm...
+The score is 26.0
+```
+Running the massive dataset, the scores obtained are:
+```bash
+running hungarian algorithm...
+The score is 11861.25
+running greedy algorithm...
+The score is 11668.25
+```
+Running the unbalanced dataset, the scores obtained are:
+```bash
+running hungarian algorithm...
+The score is 12.0
+running greedy algorithm...
+The score is 12.0
+```
+
+### Score analysis
+In order to analyze, I make an annotation as follows:
+- Drivers are annotated as ```D1```, ```D2```, ```D3```...
+- Destinations are ```A```, ```B```, ```C```...
+- ```D1→A``` means driver 1 is assigned to destination ```A```
+- ```S(D1→A)``` represents the suitability score of assigning driver 1 to ```A```.
+
+We can see differences in the outputs generated by the two algorithms in the massive data set. After analysis, I found that this occurs when there is a pattern:
+1. Both drivers have higher scores for sending to a certain location (we set it as ```A``` in the following analysis).
+2. One driver has a smaller score difference between sending to each locations than the other (we set it as ```D1``` in the following analysis).
+3. The driver with the smaller score difference has a higher score for sending to the higher-score location than the other driver.
+
+With annotation:
+```bash
+S(D1→A) > S(D1→B) and
+S(D2→A) > S(D2→B) and
+S(D1→A) - S(D1→B) > S(D2→A) - S(D2→B) and
+S(D1→A) > S(D2→A)
+```
+
+In this situation, in order to obtain a higher total score, it is actually better to send ```D1``` to ```B``` and ```D2``` to ```A```. However, due to the greedy algorithm, ```D1``` always takes the opportunity to send to ```A```, which results in a difference in the final score.
+
+This finding is significant and I added a test case to verify it. It ensures that such issues can be detected during testing in the future.
+
+### Complexity analysis
+In my personal practice, after writing an algorithm, I usually calculate its complexity and compare it with the input and output scale of the system, to minimize the possibility of service level crashes caused by long computations.
+The size of input isn't provided, so I have to make a guess. Base on the [Platform Science website](https://www.platformscience.com/blog/walmart-drives-innovation-with-platform-science), it's mentioned that we have a partnership with Walmart, who has over 12,000 drivers in their fleet. Considering that not all drivers may be working every day, I assumed a scale of 10^3 for both drivers and destinations would be appropriate. This is why I created the "massive" dataset with 1000 drivers and 1000 destinations. 
+
+The time and space complexity of the Hungarian Algorithm have been proven in many places. When given an ```n * n``` matrix, the time complexity required is ```O(n ^ 3)``` and the space complexity is ```O(n ^ 2)```. If the matrix is not symmetric, the implementation I used from ```Scipy``` (which is also the implementation found in most places) fills in the matrix with dummy values to create a square matrix. For example, if there are ```n``` drivers and ```m``` destinations, where ```n > m```, the time and space complexity will still be ```O(n ^ 3)``` and ```O(n ^ 2)```, respectively.
+
+Analyzing the algorithm I implemented, assuming there are n drivers and m destinations:
+
+1. When generating the score list, both the time and space complexity are ```O(nm)```.
+2. When sorting, the built-in sort function in Python uses ```Tim Sort```, which has an average and worst-case time complexity of ```O(nm log(nm))```.
+3. In the subsequent iteration checks, the time complexity is ```O(nm)```. The use of a set in this part of the algorithm avoids consuming a large amount of time caused by the "```in```" syntax.
+
+#### Conclusion of complexity analysis
+Both implementations use ```O(nm)``` space.
+
+When ```n = m``` and the number of elements is relatively small, the greedy algorithm's ```O(n^2 log(n^2))``` can be slightly faster than Hungarian's ```O(n^3)```, but as the input size increases, Hungarian becomes faster. (See [here](https://math.stackexchange.com/questions/319913/proof-that-n2-2n) for an indirect proof.)
+
+When ```n ≠ m``` and the difference between the two is large, there is also a chance that the greedy algorithm will be faster.
+
+I used Python's ```timeit``` library to verify the time complexity and used the data in the mock_data to test it. Each test was repeated five times and the average was taken for the final comparison.
+
+#### Verification of time complexity
+Result using the small dataset:
+```bash
+running hungarian algorithm...
+The 5 running times are (in seconds):
+[0.0001822170161176473, 8.365098619833589e-05, 6.718598888255656e-05, 6.456000846810639e-05, 6.234500324353576e-05]
+The average is 9.199180058203638e-05
+
+running greedy algorithm...
+The 5 running times are (in seconds):
+[7.441500201821327e-05, 6.137901800684631e-05, 5.488801980391145e-05, 5.203401087783277e-05, 4.9547990784049034e-05]
+The average is 5.8452808298170565e-05
+```
+
+Result using the massive dataset:
+```bash
+running hungarian algorithm...
+The 5 running times are (in seconds):
+[1.932028994022403, 1.928344215004472, 2.038543648988707, 2.0489137950062286, 1.9490320490149315]
+The average is 1.9793725404073483
+
+running greedy algorithm...
+The 5 running times are (in seconds):
+[2.4045990869926754, 2.21334969898453, 2.24704545098939, 2.2789895000169054, 2.216378954995889]
+The average is 2.2720725383958777
+```
+
+Result using the unbalanced dataset:
+```bash
+running hungarian algorithm...
+The 5 running times are (in seconds):
+[0.0021805599972140044, 0.001959411019925028, 0.001997704996028915, 0.002454861009027809, 0.0018952639948111027]
+The average is 0.0020975602034013717
+
+running greedy algorithm...
+The 5 running times are (in seconds):
+[0.001988987991353497, 0.0018725789850577712, 0.001900592993479222, 0.0019519649795256555, 0.001872861001174897]
+The average is 0.0019173971901182084
+```
+
+The above analysis may seem less meaningful in pursuit of the best score, but it is still a great learning experience for me to share.
