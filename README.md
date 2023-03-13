@@ -11,12 +11,25 @@ For the details of project design, implementation and analysis, please check [Mo
 There are two ways to build up the environment: via *Github Codespace* or setup *locally* 
 
 1. To use Github Codespace (new feature of github, not reliable but worth trying)
-    - go to [this link]() and you'll see a pop window like this
+    - go to [this link](https://prod.liveshare.vsengsaas.visualstudio.com/join?D16BEEA6271F64940D1603D7328DBCC814A7) and you'll see a pop window like this
         ![image](https://user-images.githubusercontent.com/10252988/224461226-ece4b51d-4501-4cac-87a2-8c67aa428abf.png)
     - click "continue in web" and you'll see another pop window
         ![image](https://user-images.githubusercontent.com/10252988/224461275-16bea809-f311-4317-8ef3-0bb75920debe.png)
     - click "continue as anonymous" and type in a guest name
     - log into the terminal and start to test the module
+    - (update) I noticed that ```pytest``` may not addded to path in the environment. You can try following commands to make it work:
+      ```bash
+      echo 'alias pytest="python /home/codespace/.local/lib/python3.10/site-packages/pytest/__main__.py"' > .bashrc
+      source .bashrc
+      ```
+      Then ```pytest``` should be able to work:
+      ```
+      platform linux -- Python 3.10.4, pytest-7.2.2, pluggy-1.0.0
+      rootdir: /workspaces/platform_science_assignment
+      plugins: anyio-3.6.2
+      collected 2 items                                                                                                                                                                           
+      tests/test_algorithms.py ..                          [100%]
+      ```
 
 2. To run the project locally
     - make sure you have *Python 3.9+* and *pip* installed
